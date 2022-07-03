@@ -1,0 +1,90 @@
+# Final SQL Project for Data Analytics Program with Charlotte Chaze
+## For this SQL project, I analyzed a dataset called "chinook," which represents a digital media store and includes tables for artists, albums, media tracks, invoices and customers.
+## Using this dataset in SQLiteStudio (3.3.3), I answered multiple questions using the following written SQL queries.
+
+/* 1. Show Customers (their full names, customer ID, and country) who are not in the US. */
+SELECT CustomerId, Firstname, LastName, Country
+FROM chinook.customers
+WHERE Country != 'USA';
+
+/* 2. Show only the Customers from Brazil */
+SELECT CustomerId, Firstname, LastName, Country
+FROM chinook.customers
+WHERE Country = 'Brazil';
+
+/* 3. Find the Invoices of customers who are from Brazil. The resulting table should show the customer's full name, Invoice ID, Date of the invoice, and billing country. */
+SELECT cust.FirstName, cust.LastName, invo.InvoiceId, invo.InvoiceDate, invo.BillingCountry
+FROM chinook.customers cust
+LEFT JOIN chinook.invoices invo
+ON cust.CustomerId = invo.CustomerId
+WHERE cust.Country = 'Brazil'
+
+/* 4. Show Employees who are Sales Agents */
+SELECT EmployeeId, LastName, FirstName, Title
+FROM employees
+WHERE Title LIKE '%Sales% %Agent%';
+
+/* 5. Find a unique/distinct list of billing countries from the Invoice table. */
+SELECT DISTINCT BillingCountry
+FROM invoices;
+
+/* 6. Provide a query that shows the invoices associated with each sales agent. The resulting table should include the Sales Agent's full name. */
+SELECT emp.LastName, emp.FirstName, inv.InvoiceId
+FROM employees emp
+JOIN customers cust ON emp.EmployeeId = cust.SupportRepId
+JOIN invoices inv ON inv.customerId = cust.CustomerId;
+
+/* 7. Show the Invoice Total, Customer name, Country, and Sales Agent name for all invoices and customers. */
+SELECT cust.FirstName AS cust_FirstName, Cust.LastName AS cust_LastName, cust.Country, emp.LastName AS emp_LastName, emp.FirstName AS emp_FirstName, inv.Total
+FROM employees emp
+JOIN customers cust ON emp.EmployeeId = cust.SupportRepId
+JOIN invoices inv ON inv.customerId = cust.CustomerId;
+
+/* 8. How many invoices were there in 2009? */
+SELECT COUNT(InvoiceDate) 
+FROM invoices
+WHERE InvoiceDate LIKE '%2009%';
+
+/* 9. What are the total sales for 2009? */
+SELECT ROUND(SUM(Total), 2)
+FROM invoices
+WHERE InvoiceDate LIKE '%2009%';
+
+/* 10. Write a query that includes the purchased track name (tracks.Name) with each invoice line item (invoice_items.InvoiceLineId). */
+SELECT tracks.Name, inv.InvoiceLineId
+FROM tracks
+JOIN invoice_items inv ON inv.TrackId = tracks.TrackId;
+
+/* 11. Write a query that includes the purchased track name AND artist name with each invoice line item. */
+SELECT t.Name, t.Composer, i.InvoiceLineId
+FROM Invoice_items i 
+JOIN Tracks t ON i.TrackId = t.TrackId;
+
+/* 12. Provide a query that shows all the Tracks, and include the Album name, Media type, and Genre. */
+SELECT t.Name AS 'Track Name', a.Title AS 'Album Title', m.Name AS 'Media Type', g.Name AS 'Genre'
+FROM tracks t
+JOIN albums a ON a.AlbumId = t.AlbumId
+JOIN media_types m ON m.MediaTypeId = t.MediaTypeId
+JOIN genres g ON g.GenreId = t.GenreId;
+
+/* 13. Show the total sales made by each sales agent. */
+SELECT * FROM employees;
+
+SELECT ROUND(SUM(inv.Total), 2) AS Total_Sales, e.LastName, e.FirstName
+FROM employees e
+JOIN customers cust ON cust.SupportRepId = e.EmployeeId
+JOIN invoices inv ON inv.CustomerId = cust.CustomerId
+WHERE e.Title = 'Sales Support Agent'
+GROUP BY e.FirstName;
+
+/* 14. Which sales agent made the most in sales in 2009? */
+SELECT ROUND(SUM(inv.Total), 2) AS Total_Sales, e.LastName, e.FirstName
+FROM employees e
+JOIN customers cust ON cust.SupportRepId = e.EmployeeId
+JOIN invoices inv ON inv.CustomerId = cust.CustomerId
+WHERE inv.InvoiceDate LIKE '%2009%' AND e.Title = 'Sales Support Agent'
+GROUP BY e.FirstName
+ORDER BY ROUND(SUM(inv.Total), 2) DESC
+LIMIT 1;
+
+
